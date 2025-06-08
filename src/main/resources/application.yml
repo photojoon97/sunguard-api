@@ -1,4 +1,11 @@
 spring:
+  profiles:
+    include: db
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${mysql.url}
+    username: ${mysql.username}
+    password: ${mysql.password}
   config:
     import:
       - classpath:application-busan-bus-api.yml
