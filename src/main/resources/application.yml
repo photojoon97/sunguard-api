@@ -1,0 +1,17 @@
+spring:
+  config:
+    import:
+      - classpath:application-busan-bus-api.yml
+      - classpath:application-solar-api.yml
+jpa:
+  hibernate:
+    ddl-auto: update
+  properties:
+    hibernate:
+      show_sql: true
+      format_sql: true
+
+my:
+  test:
+    value: HelloYAML
+

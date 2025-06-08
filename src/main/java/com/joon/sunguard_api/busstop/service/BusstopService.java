@@ -3,24 +3,29 @@ package com.joon.sunguard_api.busstop.service;
 
 import com.joon.sunguard_api.busstop.dto.BusstopRequestDto;
 import com.joon.sunguard_api.busstop.dto.BusstopResponseDto;
+import com.joon.sunguard_api.config.BusanBusApi;
 import com.joon.sunguard_api.publicapi.dto.PublicApiCaller;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class BusstopService {
 
-    @Value("${BUSAN_BUS_API_KEY}")
-    private String BUSAN_BUS_API_KEY;
-
-    public static final String BUSAN_BUS_URL = "http://apis.data.go.kr/6260000/BusanBIMS/busStopList";
+    private final BusanBusApi busanBusApi;
+    private final PublicApiCaller publicApiCaller;
 
     @Autowired
-    public PublicApiCaller publicApiCaller;
+    public BusstopService(BusanBusApi busanBusApi, PublicApiCaller publicApiCaller) {
+        this.busanBusApi = busanBusApi;
+        this.publicApiCaller = publicApiCaller;
+    }
 
     public BusstopResponseDto getBusstopList(BusstopRequestDto request){
+        String busanBusUrl = busanBusApi.getUrl();
+        String busanBusApiKey = busanBusApi.getKey();
 
-        return publicApiCaller.getRequest(request, BusstopResponseDto.class,BUSAN_BUS_URL, BUSAN_BUS_API_KEY);
+        return publicApiCaller.getRequest(request, BusstopResponseDto.class, busanBusUrl, busanBusApiKey);
     }
 }
