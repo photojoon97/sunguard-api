@@ -1,70 +1,30 @@
 package com.joon.sunguard_api.busstop.dto;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
-@JacksonXmlRootElement(localName = "response")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BusstopResponseDto {
 
-    @JacksonXmlProperty(localName = "header")
-    private Header header;
+    @JsonProperty("arsno")
+    private String arsno;
 
-    @JacksonXmlProperty(localName = "body")
-    private Body body;
+    @JsonProperty("bstopid")
+    private String bstopid;
 
-    @Getter
-    @Setter
-    public static class Header {
-        @JacksonXmlProperty(localName = "resultCode")
-        private String resultCode;
+    @JsonProperty("bstopnm")
+    private String bstopnm;
 
-        @JacksonXmlProperty(localName = "resultMsg")
-        private String resultMsg;
-    }
+    @JsonProperty("gpsx")
+    private double gpsx;
 
-    @Getter
-    @Setter
-    public static class Body {
+    @JsonProperty("gpsy")
+    private double gpsy;
 
-        @JacksonXmlProperty(localName = "numOfRows")
-        private int numOfRows;
-
-        @JacksonXmlProperty(localName = "pageNo")
-        private int pageNo;
-
-        @JacksonXmlProperty(localName = "totalCount")
-        private int totalCount;
-
-        @JacksonXmlElementWrapper(localName = "items")
-        @JacksonXmlProperty(localName = "item")
-        private List<Item> items;
-    }
-
-    @Getter
-    @Setter
-    public static class Item {
-
-        @JacksonXmlProperty(localName = "arsno")
-        private String arsno;
-
-        @JacksonXmlProperty(localName = "bstopid")
-        private String bstopid;
-
-        @JacksonXmlProperty(localName = "bstopnm")
-        private String bstopnm;
-
-        @JacksonXmlProperty(localName = "gpsx")
-        private double gpsx;
-
-        @JacksonXmlProperty(localName = "gpsy")
-        private double gpsy;
-
-        @JacksonXmlProperty(localName = "stoptype")
-        private String stoptype;
-    }
+    @JsonProperty("stoptype")
+    private String stoptype;
 }
