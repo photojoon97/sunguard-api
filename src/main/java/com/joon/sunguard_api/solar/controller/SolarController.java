@@ -15,9 +15,11 @@ public class SolarController {
 
     @Autowired
     public SolarService solarService;
-
+/*
     @GetMapping("/getSolarInfo")
     public SolarResponseDto getSolarInfo(@ModelAttribute SolarRequestDto request){
         return solarService.getSorlarInfo(request);
     }
+
+ */
 }

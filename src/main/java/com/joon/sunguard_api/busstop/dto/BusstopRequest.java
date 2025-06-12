@@ -7,10 +7,15 @@ import lombok.Setter;
 @Setter
 public class BusstopRequest {
     private String bstopnm;
-    //private String arsno;
+    private String arsno;
+    private String gpsX;
+    private String gpsY;
 
-    public BusstopRequest(String bstopnm/*, String arsno*/){
+
+    public BusstopRequest(String bstopnm, String arsno, String gpsX, String gpsY){
         this.bstopnm = bstopnm;
-        //this.arsno = arsno;
+        this.arsno = arsno;
+        this.gpsX = gpsX;
+        this.gpsY = gpsY;
     }
 }

@@ -1,7 +1,7 @@
 package com.joon.sunguard_api.solar.service;
 
 import com.joon.sunguard_api.config.SolarApi;
-import com.joon.sunguard_api.publicapi.dto.PublicApiCaller;
+
 import com.joon.sunguard_api.solar.dto.SolarRequestDto;
 import com.joon.sunguard_api.solar.dto.SolarResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SolarService {
-
+/*
     private SolarApi solarApi;
     public PublicApiCaller publicApiCaller;
 
@@ -26,4 +26,6 @@ public class SolarService {
         String SOLAR_API_KEY = solarApi.getKey();
         return publicApiCaller.getRequest(request, SolarResponseDto.class, SOLAR_URL, SOLAR_API_KEY);
     }
+
+ */
 }

@@ -1,37 +1,32 @@
 package com.joon.sunguard_api.publicapi.util;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import lombok.AccessLevel;
-
-import lombok.NoArgsConstructor;
 import org.json.JSONObject;
 import org.json.XML;
-import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Map;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class PublicApiUtils {
+@Component
+public class PublicApiFetcher {
+    private final WebClient webClient;
+    private final XmlMapper xmlMapper;
 
-    public static <T> String fetchXmlDataAsString(String baseUrl, String apikey, T requsetDto){
+    public PublicApiFetcher(WebClient webClient){
+        this.webClient = webClient;
+        this.xmlMapper = new XmlMapper();
+        this.xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
+    }
 
-        WebClient webClient = WebClient.builder()
-                .baseUrl(baseUrl)
-                .defaultHeader(HttpHeaders.CONNECTION, "keep-alive")
-                .build();
-
-        XmlMapper xmlMapper = new XmlMapper();
-        xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-        Map<String, String> paramMap = xmlMapper.convertValue(requsetDto, Map.class);
-        paramMap.put("serviceKey", apikey);
+    public <T> String fechXmlDatatoString(String api_url, String api_key, T requestDto){
+        Map<String, String>paramMap = xmlMapper.convertValue(requestDto, Map.class);
+        paramMap.put("serviceKey", api_key);
 
         try{
             String xmlResponse = webClient.get()
-                    .uri(uriBuilder -> {
+                    .uri(api_url, uriBuilder -> {
                         paramMap.forEach(uriBuilder::queryParam);
                         return uriBuilder.build();
                     })
@@ -47,8 +42,7 @@ public class PublicApiUtils {
             Object itemData = items.get("item");
 
             return itemData.toString();
-
-        } catch (Exception e) {
+        } catch (Exception e){
             throw new RuntimeException("API 호출 및 데이터 추출 실패 : " + e.getMessage());
         }
     }
