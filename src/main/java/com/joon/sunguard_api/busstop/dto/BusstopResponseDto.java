@@ -1,30 +1,33 @@
 package com.joon.sunguard_api.busstop.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.joon.sunguard_api.busstop.domain.BusStopEntity;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@JsonIgnoreProperties(ignoreUnknown = true)
+@NoArgsConstructor // 1. 기본 생성자를 추가해주는 Lombok 어노테이션
 public class BusstopResponseDto {
 
-    @JsonProperty("arsno")
     private String arsno;
 
-    @JsonProperty("bstopid")
     private String bstopid;
 
-    @JsonProperty("bstopnm")
     private String bstopnm;
 
-    @JsonProperty("gpsx")
     private double gpsx;
 
-    @JsonProperty("gpsy")
     private double gpsy;
 
-    @JsonProperty("stoptype")
     private String stoptype;
+
+    public BusstopResponseDto(BusStopEntity entity) {
+        this.bstopid = String.valueOf(entity.getBstop_id());
+        this.bstopnm = entity.getStation_name();
+        this.gpsx = entity.getGpsX();
+        this.gpsy = entity.getGpsY();
+    }
+
 }
