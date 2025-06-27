@@ -11,5 +11,13 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class BusanBusApi {
     private String key;
-    private String url;
+    private Url url = new Url();
+
+    @Getter
+    @Setter
+    public static class Url{
+        private String base_url;
+        private String arrival_url;
+        private String route_url;
+    }
 }

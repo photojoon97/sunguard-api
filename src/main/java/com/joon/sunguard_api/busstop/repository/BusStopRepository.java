@@ -1,8 +1,6 @@
 package com.joon.sunguard_api.busstop.repository;
 
 import com.joon.sunguard_api.busstop.domain.BusStopEntity;
-import com.joon.sunguard_api.busstop.dto.BusstopRequest;
-import com.joon.sunguard_api.busstop.dto.BusstopResponseDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

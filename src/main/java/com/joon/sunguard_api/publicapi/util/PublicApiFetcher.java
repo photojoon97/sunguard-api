@@ -20,8 +20,8 @@ public class PublicApiFetcher {
         this.xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
     }
 
-    public <T> String fechXmlDatatoString(String api_url, String api_key, T requestDto){
-        Map<String, String>paramMap = xmlMapper.convertValue(requestDto, Map.class);
+    public <T> String fechXmlDatatoString(String api_url, String api_key, T request){
+        Map<String, String>paramMap = xmlMapper.convertValue(request, Map.class);
         paramMap.put("serviceKey", api_key);
 
         try{

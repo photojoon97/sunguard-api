@@ -19,9 +19,9 @@ public class ResponseListStrategy implements OpenApiCallStrategy {
     }
 
     @Override
-    public <T,C> T callApi(String key, String url, C requestDto, Class<T> responseDto){
+    public <T,C> T callApi(String key, String url, C requestParam, Class<T> responseDto){
         //String jsonData = PublicApiUtils.fetchXmlDataAsString(url, key, requestDto);
-        String jsonData = publicApiFetcher.fechXmlDatatoString(url, key, requestDto);
+        String jsonData = publicApiFetcher.fechXmlDatatoString(url, key, requestParam);
         log.info("jsonData : " + jsonData);
 
         try{
