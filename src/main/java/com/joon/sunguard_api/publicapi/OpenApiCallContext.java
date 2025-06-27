@@ -15,11 +15,11 @@ public class OpenApiCallContext {
         this.strategies = strategies;
     }
 
-    public <R, T> R excute(String strategyName, String key, String url, T requestDto, Class<?> responseDto){
+    public <R, T> R excute(String strategyName, String key, String url, T requestParam, Class<?> responseDto){
         OpenApiCallStrategy strategy = strategies.get(strategyName);
         if(strategy == null){
             throw  new IllegalArgumentException("Cannot find strategy with name : " +  strategyName);
         }
-        return (R) strategy.callApi(key, url, requestDto, responseDto);
+        return (R) strategy.callApi(key, url, requestParam, responseDto);
     }
 }

@@ -2,17 +2,20 @@ package com.joon.sunguard_api.busstop.service;
 
 
 import com.joon.sunguard_api.busstop.domain.BusStopEntity;
-import com.joon.sunguard_api.busstop.dto.BusstopRequest;
-import com.joon.sunguard_api.busstop.dto.BusstopResponseDto;
+import com.joon.sunguard_api.busstop.dto.BusRouteStationInfo;
+import com.joon.sunguard_api.busstop.dto.BusArrivalInfoResponse;
+import com.joon.sunguard_api.busstop.dto.BusStopSearchRequest;
+import com.joon.sunguard_api.busstop.dto.BusStopInfoResponse;
 import com.joon.sunguard_api.busstop.repository.BusStopRepository;
 import com.joon.sunguard_api.config.BusanBusApi;
 import com.joon.sunguard_api.publicapi.OpenApiCallContext;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,19 +33,19 @@ public class BusstopService {
     }
 
     //정류장 이름으로 버스 정류장 검색
-    public List<BusstopResponseDto> findBusStopsByName(BusstopRequest request){
-        String url = busanBusApi.getUrl();
+    public List<BusStopInfoResponse> searchBusStopsByName(BusStopSearchRequest request){
+        String url = busanBusApi.getUrl().getBase_url();
         String key = busanBusApi.getKey();
 
-        return openApiCallContext.excute("listDtoStrategy", key, url, request, BusstopResponseDto.class);
+        return openApiCallContext.excute("listDtoStrategy", key, url, request, BusStopInfoResponse.class);
     }
 
     //현재 위치를 기준으로 근처 정류장 검색
     @Transactional(readOnly = true)
-    public List<BusstopResponseDto> findNearbyBusStops(BusstopRequest request) {
+    public List<BusStopInfoResponse> searchNearbyBusStops(BusStopSearchRequest request) {
 
-        double latitude = Double.parseDouble(request.getGpsY());
-        double longitude = Double.parseDouble(request.getGpsX());
+        double latitude = Double.parseDouble(request.getLatitude());
+        double longitude = Double.parseDouble(request.getLongitude());
 
         List<BusStopEntity> nearbyBusStops = busStopRepository.findNearbyBusStops(
                 latitude,
@@ -50,9 +53,30 @@ public class BusstopService {
         );
 
         return nearbyBusStops.stream()
-                .map(BusstopResponseDto::new) // busStopEntity -> new BusstopResponseDto(busStopEntity)와 동일
+                .map(BusStopInfoResponse::new) // busStopEntity -> new BusstopResponseDto(busStopEntity)와 동일
                 .collect(Collectors.toList());
     }
+
+    public List<BusArrivalInfoResponse> findBusArrivalsByStopId(String busStopId){
+        String url = busanBusApi.getUrl().getArrival_url();
+        String key = busanBusApi.getKey();
+
+        Map<String, String> requestParam = new HashMap<>();
+        requestParam.put("bstopid", busStopId);
+
+        return openApiCallContext.excute("listDtoStrategy", key, url, requestParam, BusArrivalInfoResponse.class);
+    }
+
+    public List<BusRouteStationInfo> findBusRouteByLineId(String lineId){
+        String url = busanBusApi.getUrl().getRoute_url();
+        String key = busanBusApi.getKey();
+
+        Map<String, String> requestParam = new HashMap<>();
+        requestParam.put("lineid", lineId);
+
+        return openApiCallContext.excute("listDtoStrategy", key, url, requestParam, BusRouteStationInfo.class);
+    }
+
 
 }
 
