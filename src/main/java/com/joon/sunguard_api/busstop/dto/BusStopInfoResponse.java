@@ -1,38 +1,26 @@
 package com.joon.sunguard_api.busstop.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.joon.sunguard_api.busstop.domain.BusStopEntity;
+import com.joon.sunguard_api.busstop.entity.BusStop;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
-@NoArgsConstructor // 1. 기본 생성자를 추가해주는 Lombok 어노테이션
 public class BusStopInfoResponse {
+    private String bstopId;
+    private String stationName;
+    private String bstopNo;
+    private Double distance; // 근처 정류장 검색 시 사용
 
-    private String arsno;
-
-    @JsonProperty("bstopid")
-    private String busStopId;
-
-    @JsonProperty("bstopnm")
-    private String busStopName;
-
-    @JsonProperty("gpsx")
-    private double longitude;
-
-    @JsonProperty("gpsy")
-    private double latitude;
-
-    @JsonProperty("stoptype")
-    private String stopType;
-
-    public BusStopInfoResponse(BusStopEntity entity) {
-        this.busStopId = String.valueOf(entity.getBstop_id());
-        this.busStopName = entity.getStation_name();
-        this.longitude = entity.getGpsX();
-        this.latitude = entity.getGpsY();
+    // Entity -> DTO 변환을 위한 생성자
+    public BusStopInfoResponse(BusStop entity) {
+        this.bstopId = entity.getBstopId();
+        this.stationName = entity.getStationName();
+        this.bstopNo = entity.getBstopNo();
     }
 
+    // NearbyStopDto -> DTO 변환을 위한 생성자
+    public BusStopInfoResponse(NearbyStopDto dto) {
+        this.bstopId = dto.getBstopId();
+        this.stationName = dto.getStationName();
+        this.distance = dto.getDistance();
+    }
 }
