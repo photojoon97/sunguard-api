@@ -1,5 +1,7 @@
-package com.joon.sunguard_api.busstop.dto;
+package com.joon.sunguard_api.busstop.dto.response;
 
+import com.joon.sunguard_api.busstop.dto.ApiBusArrivalInfoDto;
+import com.joon.sunguard_api.busstop.dto.ArrivingBusDto;
 import lombok.Getter;
 
 @Getter

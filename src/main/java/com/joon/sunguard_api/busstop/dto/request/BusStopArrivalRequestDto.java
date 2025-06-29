@@ -1,4 +1,4 @@
-package com.joon.sunguard_api.busstop.dto;
+package com.joon.sunguard_api.busstop.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

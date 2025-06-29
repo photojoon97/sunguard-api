@@ -10,6 +10,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ArrivingBusDto {
-    private String lineNo; // busNum -> lineNo
+    private String lineNo;
     private String lineId;
 }

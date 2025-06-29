@@ -1,6 +1,10 @@
 package com.joon.sunguard_api.busstop.controller;
 
-import com.joon.sunguard_api.busstop.dto.*;
+import com.joon.sunguard_api.busstop.dto.request.BusStopSearchRequest;
+import com.joon.sunguard_api.busstop.dto.response.BusArrivalInfoResponse;
+import com.joon.sunguard_api.busstop.dto.response.BusRouteStationInfo;
+import com.joon.sunguard_api.busstop.dto.response.BusStopInfoResponse;
+import com.joon.sunguard_api.busstop.dto.response.RealtimeArrivingBusDto;
 import com.joon.sunguard_api.busstop.service.BusstopService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +23,8 @@ public class BusstopController {
 
 
     //정류장 이름으로 버스 정류장 조회
-    //http://localhost:8080/busstops/by-name?bstopnm=안락
-    //수정 필요
-    @GetMapping("/by-name")
+    //http://localhost:8080/busstops/busStopsByName?bstopnm=안락
+    @GetMapping("/busStopsByName")
     public List<BusStopInfoResponse> searchBusStopsByName(@ModelAttribute BusStopSearchRequest request) {
         return busstopService.searchBusStopsByName(request);
     }
@@ -45,8 +48,8 @@ public class BusstopController {
     //버스 노선_ID를 기준으로 버스의 노선 조회
     //부산버스정보시스템 API 문서 3번 항목 참조
     //요청 데이터 : 노선 ID
-    //http://localhost:8080/busstops/inqueryOfline?lineid=5200155000
-    @GetMapping("inqueryOfline")
+    //http://localhost:8080/busstops/searchLine?lineid=5200155000
+    @GetMapping("searchLine")
     public List<BusRouteStationInfo> findBusRouteByLineId(@RequestParam(value = "lineid")String lineid){
         return busstopService.findBusRouteByLineId(lineid);
     }
@@ -61,4 +64,6 @@ public class BusstopController {
         List<RealtimeArrivingBusDto> arrivalInfo = busstopService.getRaaltimeArrivingBus(bstopId);
         return ResponseEntity.ok(arrivalInfo);
     }
+
+
 }
