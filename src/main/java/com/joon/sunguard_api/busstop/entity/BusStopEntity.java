@@ -1,4 +1,4 @@
-package com.joon.sunguard_api.busstop.domain;
+package com.joon.sunguard_api.busstop.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -8,27 +8,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@JsonIgnoreProperties(ignoreUnknown = true)
-@NoArgsConstructor
 public class BusStopSearchRequest {
-
-    @JsonProperty("bstopnm")
-    private String busStopName;
-
-    @JsonProperty("arsno")
-    private String arsNo;
-
-    @JsonProperty("gpsX")
-    private String longitude;
-
-    @JsonProperty("gpsY")
-    private String latitude;
-
-
-    public BusStopSearchRequest(String busStopName, String arsNo, String longitude, String latitude){
-        this.busStopName = busStopName;
-        this.arsNo = arsNo;
-        this.longitude = longitude;
-        this.latitude = latitude;
-    }
+    private String bstopnm; // 정류장 이름으로 검색
+    private String latitude;  // 좌표로 검색
+    private String longitude; // 좌표로 검색
 }
