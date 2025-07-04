@@ -5,8 +5,8 @@
 
 package com.joon.sunguard_api.busstop.repository;
 
+import com.joon.sunguard_api.busstop.dto.response.BusStopInfoResponse;
 import com.joon.sunguard_api.busstop.entity.BusStop;
-import com.joon.sunguard_api.busstop.dto.BusStopSearchDto;
 import com.joon.sunguard_api.busstop.dto.NearbyStopDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,10 +18,13 @@ import java.util.List;
 @Repository
 public interface BusStopRepository extends JpaRepository<BusStop, String> {
 
-    @Query("SELECT new com.joon.sunguard_api.busstop.dto.BusStopSearchDto(bs.stationName, bs.bstopId, bs.bstopNo) " +
+
+    //정류장 이름으로 DB에서 정류장 정보 조회
+    @Query("SELECT new com.joon.sunguard_api.busstop.dto.response.BusStopInfoResponse(bs.stationName, bs.bstopId, bs.bstopNo) " +
             "FROM BusStop bs " +
             "WHERE bs.stationName LIKE %:stationName%")
-    List<BusStopSearchDto> findByStationName(@Param("stationName") String stationName);
+    List<BusStopInfoResponse> findByStationName(@Param("stationName") String stationName);
+
 
     @Query(value = "SELECT " +
             "b.bstop_id AS bstopId, " +

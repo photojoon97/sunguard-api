@@ -1,10 +1,7 @@
 package com.joon.sunguard_api.busstop.controller;
 
 import com.joon.sunguard_api.busstop.dto.request.BusStopSearchRequest;
-import com.joon.sunguard_api.busstop.dto.response.BusArrivalInfoResponse;
-import com.joon.sunguard_api.busstop.dto.response.BusRouteStationInfo;
-import com.joon.sunguard_api.busstop.dto.response.BusStopInfoResponse;
-import com.joon.sunguard_api.busstop.dto.response.RealtimeArrivingBusDto;
+import com.joon.sunguard_api.busstop.dto.response.*;
 import com.joon.sunguard_api.busstop.service.BusstopService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,13 +18,23 @@ public class BusstopController {
         this.busstopService = busstopService;
     }
 
+    /*Deprecated
+    //정류장 ID로 정류장 조회
+    //http://localhost:8080/busstops/busStopById?stopid=166070203
+    @GetMapping("/busStopById") // 2. 이 경로가 정확한지 확인 (대소문자 등)
+    public BusStopInfoResponse findBusStopByStopId(@RequestParam("stopid") String stopId) {
+        return busstopService.findBusStopByStopId(stopId);
+    }
+    */
 
     //정류장 이름으로 버스 정류장 조회
     //http://localhost:8080/busstops/busStopsByName?bstopnm=안락
-    @GetMapping("/busStopsByName")
-    public List<BusStopInfoResponse> searchBusStopsByName(@ModelAttribute BusStopSearchRequest request) {
-        return busstopService.searchBusStopsByName(request);
-    }
+    //deprecated
+    //@GetMapping("/busStopsByName")
+    //public List<BusStopInfoResponse> searchBusStopsByName(@ModelAttribute BusStopSearchRequest request) {
+    //    return busstopService.searchBusStopsByName(request);
+    //}
+
 
     //현재 좌표를 기준으로 근처 버스 정류장 조회
     //http://localhost:8080/busstops/nearbyBusstops?latitude=35.1799&longitude=129.0756
@@ -54,16 +61,23 @@ public class BusstopController {
         return busstopService.findBusRouteByLineId(lineid);
     }
 
-
     //실시간 도착 버스 조회
     // 요청 데이터 : 정거장 ID
     //curl -X GET "http://localhost:8080/busstops/arrival?bstopId=505780000"
     @GetMapping("/arrival")
-    public ResponseEntity<List<RealtimeArrivingBusDto>> getRealTimeArrivalInfo(
-            @RequestParam String bstopId) {
+    public ResponseEntity<List<RealtimeArrivingBusDto>> getRealTimeArrivalInfo(@RequestParam String bstopId) {
         List<RealtimeArrivingBusDto> arrivalInfo = busstopService.getRaaltimeArrivingBus(bstopId);
         return ResponseEntity.ok(arrivalInfo);
     }
 
+    /*
+    //출발지 -> 목적지 경로 설정
+    //요청 데이터 : 출발 정거장 ID, 도착 정거장 ID
+    @GetMapping("/setRoute")
+    public UserRoute setUserRoute(@RequestParam(value = "departure")String startId, @RequestParam(value = "destination") String endId){
+        UserRoute userRoute = busstopService.
+        return userRoute;
+    }
+    */
 
 }

@@ -21,7 +21,6 @@ public class BusRouteStationInfo {
     @JsonProperty("bstopidx")
     private int busStopIndex;      // 노선 내 정류소 순번
 
-
     private String arsno;      // 정류소 번호
 
     @JsonProperty("nodeid")
