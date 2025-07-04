@@ -13,7 +13,7 @@ public class RealtimeArrivingBusDto {
 
     public RealtimeArrivingBusDto(ArrivingBusDto arrivingBusDb){
         this.lineId = arrivingBusDb.getLineId();
-        this.lineNo = arrivingBusDb.getLineNo(); // getBusNum() -> getLineNo()
+        this.lineNo = arrivingBusDb.getLineNo();
         this.remainingTime = "정보 없음";
         this.remainingStops = "정보 없음";
     }
