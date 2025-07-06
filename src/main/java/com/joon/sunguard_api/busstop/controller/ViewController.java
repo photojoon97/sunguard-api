@@ -41,7 +41,7 @@ public class ViewController {
 
         //이름으로 버스 정류장 검색
         if (!currentSearchKeyword.isEmpty()) {
-            List<BusStopInfoResponse> searchResults = busstopService.searchBusStopsByName(searchRequest.getBstopnm());
+            List<BusStopInfoResponse> searchResults = busstopService.findBusStopsByName(searchRequest.getBstopnm());
 
             // searchResults가 비어있지 않을 때만 searchResultContainer를 모델에 추가합니다.
             if (searchResults != null && !searchResults.isEmpty()) {
@@ -63,11 +63,18 @@ public class ViewController {
 
         //출발지 설정
         if (departureId != null && departureName != null) {
-            model.addAttribute("departure", new BusStopInfoResponse(departureId, departureName));
+            BusStopInfoResponse departureDto = BusStopInfoResponse.builder()
+                                                .bstopId(departureId)
+                                                .stationName(departureName).build();
+            model.addAttribute("departure", departureDto);
         }
         //목적지 설정
         if (destinationId != null && destinationName != null) {
-            model.addAttribute("destination", new BusStopInfoResponse(destinationId, destinationName));
+            BusStopInfoResponse destinationDto = BusStopInfoResponse.builder()
+                                                .bstopId(destinationId)
+                                                .stationName(departureName)
+                                                .build();
+            model.addAttribute("destination", destinationDto);
         }
 
         return "index";
@@ -92,6 +99,7 @@ public class ViewController {
         log.info("경로 탐색 요청: {} ({}) -> {} ({})", departureName, departureId, destinationName, destinationId);
 
         RouteResponse routeResult = busstopService.findShortestPath(departureId, destinationId);
+        log.info("이동 거리 : {} 진행 방향 : {}", routeResult.getTotalDistance(), routeResult.getDirection());
 
         if (routeResult == null) {
             model.addAttribute("errorMessage", "경로를 찾을 수 없습니다. 다른 정류장을 선택해주세요.");
@@ -99,8 +107,17 @@ public class ViewController {
             model.addAttribute("routeResult", routeResult);
         }
 
-        model.addAttribute("departure", new BusStopInfoResponse(departureId, departureName));
-        model.addAttribute("destination", new BusStopInfoResponse(destinationId, destinationName));
+        BusStopInfoResponse departureDto = BusStopInfoResponse.builder()
+                .bstopId(departureId)
+                .stationName(departureName).build();
+
+        BusStopInfoResponse destinationDto = BusStopInfoResponse.builder()
+                .bstopId(destinationId)
+                .stationName(departureName)
+                .build();
+
+        model.addAttribute("departure", departureDto);
+        model.addAttribute("destination", destinationDto);
 
         return "index";
     }
