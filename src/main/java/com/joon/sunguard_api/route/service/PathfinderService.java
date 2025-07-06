@@ -5,11 +5,13 @@ import com.joon.sunguard_api.route.dto.PathSegment;
 import com.joon.sunguard_api.route.dto.RouteNode;
 import com.joon.sunguard_api.route.dto.RouteResponse;
 import com.joon.sunguard_api.route.dto.RouteStep;
+import com.joon.sunguard_api.route.util.AzimuthAngle;
 import com.joon.sunguard_api.route.util.CalculateDistance;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.Mac;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,6 +22,7 @@ public class PathfinderService {
 
     private final RouteDataService routeDataService;
     private final CalculateDistance calculateDistance;
+    private final AzimuthAngle azimuthAngle;
     private static final int MAX_TRANSFERS = 2; // 환승횟수 제한
     private static final double TRANSFER_PENALTY = 1.0; // 환승 페널티 (km)
 
@@ -57,6 +60,7 @@ public class PathfinderService {
         PriorityQueue<RouteNode> openSet = new PriorityQueue<>(); //최단거리일 확률이 높은 경로
         Map<PathSegment, PathSegment> cameFrom = new HashMap<>(); //누적된 경로
         Map<PathSegment, Double> gScore = new HashMap<>(); //현재까지 이동한 거리
+        Map<String, Double> moveVector = new HashMap<>(); //이동 방향, 거리
 
         // 휴리스틱(h-score) 계산을 위해 대표 목적지 정류장을 사용합니다.
         BusStop representativeEndStop = endStop;
@@ -73,7 +77,7 @@ public class PathfinderService {
                                                     representativeEndStop.getGpsY(), representativeEndStop.getGpsX()
                                                     );
 
-                openSet.add(new RouteNode(hScore, 0.0, currentStartId, lineId, 0));
+                openSet.add(new RouteNode(hScore, 0.0, currentStartId, lineId, 0, 0.0, ""));
                 cameFrom.put(startSegment, null);
             }
         }
@@ -83,6 +87,8 @@ public class PathfinderService {
             String currentStopId = current.getStopId();
             String currentLineId = current.getLineId();
             int currentTransfers = current.getTransfers();
+            moveVector.merge(current.getDirection(), current.getDistance(), Double::sum);
+
 
             PathSegment currentSegment = new PathSegment(currentStopId, currentLineId, currentTransfers); //현재 정류장
 
@@ -93,7 +99,15 @@ public class PathfinderService {
             // 4. [수정] 현재 정류장이 목적지 후보 중 하나인지 확인합니다.
             if (allEndStopIds.contains(currentStopId)) { // 도착 정류장ID들 중 현재 정류장ID와 일치하는 것이 있으면 탐색 종료
                 log.info("목적지 도착! 경로를 재구성합니다.");
-                return reconstructPath(cameFrom, currentSegment, gScore.get(currentSegment));
+                //여기서 최장거리 방위각 도출
+                //RouteNode : "방위각" : 거리
+                Optional<Map.Entry<String, Double>> MaxDirection =
+                        moveVector.entrySet().stream().max(Map.Entry.comparingByValue());
+
+                String direction = MaxDirection
+                        .map(Map.Entry::getKey)
+                        .orElse(" ");
+                return reconstructPath(cameFrom, currentSegment, gScore.get(currentSegment), direction);
             }
 
             BusStop currentStopInfo = routeDataService.getStopInfo().get(currentStopId);
@@ -111,6 +125,12 @@ public class PathfinderService {
                                                             currentStopInfo.getGpsY(), currentStopInfo.getGpsX(),
                                                             nextStopInfo.getGpsY(), nextStopInfo.getGpsX()
                                                         );
+                    //현재 정류장 - 다음 정류장 사이의 진행 방향
+                    String azmithAngle = azimuthAngle.calculateBearing(
+                                                            currentStopInfo.getGpsY(), currentStopInfo.getGpsX(),
+                                                            nextStopInfo.getGpsY(), nextStopInfo.getGpsX()
+                                                        );
+
 
                     //출발지부터 방금 찾아낸 다음 노드(nextStopInfo)까지의 총 이동 비용(거리)
                     double tentativeGScore = gScore.get(currentSegment) + distance;
@@ -126,7 +146,7 @@ public class PathfinderService {
                                                             representativeEndStop.getGpsY(), representativeEndStop.getGpsX()
                                                             );
                         //우선순위 큐에 새로찾은 경로 저장
-                        openSet.add(new RouteNode(tentativeGScore + hScore, tentativeGScore, nextStopId, currentLineId, currentTransfers));
+                        openSet.add(new RouteNode(tentativeGScore + hScore, tentativeGScore, nextStopId, currentLineId, currentTransfers,distance,azmithAngle));
                     }
                 }
             }
@@ -148,7 +168,7 @@ public class PathfinderService {
                                                                 representativeEndStop.getGpsY(), representativeEndStop.getGpsX()
                                                                 );
 
-                            openSet.add(new RouteNode(tentativeGScore + hScore, tentativeGScore, currentStopId, transferLineId, currentTransfers + 1));
+                            openSet.add(new RouteNode(tentativeGScore + hScore, tentativeGScore, currentStopId, transferLineId, currentTransfers + 1,0.0,""));
                         }
                     }
                 }
@@ -158,7 +178,7 @@ public class PathfinderService {
         return null; // 경로 없음
     }
 
-    private RouteResponse reconstructPath(Map<PathSegment, PathSegment> cameFrom, PathSegment lastSegment, double totalDistance) {
+    private RouteResponse reconstructPath(Map<PathSegment, PathSegment> cameFrom, PathSegment lastSegment, double totalDistance, String direction) {
         List<PathSegment> path = new ArrayList<>();
         PathSegment current = lastSegment;
 
@@ -218,6 +238,7 @@ public class PathfinderService {
                 .steps(steps)
                 .transferCount(steps.size() - 1)
                 .totalDistance(String.format("%.2f", totalDistance))
+                .direction(direction)
                 .build();
     }
 }

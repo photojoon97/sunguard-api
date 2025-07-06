@@ -92,8 +92,15 @@
                             </ul>
 
                             <div class="d-grid gap-2 d-md-flex">
-                                <button type="button" class="btn btn-info flex-fill" onclick="setDeparture('{{selectedStopName}}', '{{selectedStopId}}')">출발지로 설정</button>
-                                <button type="button" class="btn btn-warning flex-fill" onclick="setDestination('{{selectedStopName}}', '{{selectedStopId}}')">목적지로 설정</button>
+                                <button type="button" class="btn btn-info flex-fill"
+                                        id="set-departure-btn"
+                                        data-stop-name="{{selectedStopName}}"
+                                        data-stop-id="{{selectedStopId}}">출발지로 설정</button>
+
+                                <button type="button" class="btn btn-warning flex-fill"
+                                        id="set-destination-btn"
+                                        data-stop-name="{{selectedStopName}}"
+                                        data-stop-id="{{selectedStopId}}">목적지로 설정</button>
                             </div>
 
                             <h6 class="mt-4">도착 예정 버스</h6>

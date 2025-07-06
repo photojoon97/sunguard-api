@@ -15,4 +15,5 @@ public class PathSegment {
     private final String stopId; // 현재 정류장
     private final String lineId; // 어떤 버스를 타고 왔는지
     private final int transfers; //현재까지 환승 횟수
+
 }

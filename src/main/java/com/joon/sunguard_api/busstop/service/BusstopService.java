@@ -9,6 +9,7 @@ import com.joon.sunguard_api.busstop.entity.BusStop;
 import com.joon.sunguard_api.busstop.repository.BusStopRepository;
 import com.joon.sunguard_api.busstop.repository.RoutePathRepository;
 import com.joon.sunguard_api.config.BusanBusApi;
+import com.joon.sunguard_api.exception.BusStopNotFoundException;
 import com.joon.sunguard_api.publicapi.OpenApiCallContext;
 import com.joon.sunguard_api.route.dto.RouteResponse;
 import com.joon.sunguard_api.route.service.PathfinderService;
@@ -44,14 +45,16 @@ public class BusstopService {
     }
 
     //정류장 이름으로 버스 정류장 검색
-    public List<BusStopInfoResponse> searchBusStopsByName(String satationName){
-        /*
-        deprecated
-        String url = busanBusApi.getUrl().getBase_url();
-        String key = busanBusApi.getKey();
-        return openApiCallContext.excute("listDtoStrategy", key, url, request, BusStopInfoResponse.class);
-        */
-        return busStopRepository.findByStationName(satationName);
+    public List<BusStopInfoResponse> findBusStopsByName(String stopName){
+
+        List<BusStopInfoResponse> busStops = busStopRepository.findByStationName(stopName);
+
+        if(busStops.isEmpty()){
+            throw new BusStopNotFoundException("해당 이름의 정류장을 찾을 수 없습니다 : " + stopName);
+        }
+
+        return busStops;
+
     }
 
     //현재 위치를 기준으로 근처 정류장 검색
@@ -64,18 +67,23 @@ public class BusstopService {
         double radius = 0.5; // 500m 반경
 
         // 수정된 부분 1: 리포지토리 반환 타입에 맞게 변수 타입을 List<NearbyStopDto>로 변경
-        List<NearbyStopDto> nearbyStops = busStopRepository.findNearbyStops(
+        List<BusStopWithDistance> nearbyStops = busStopRepository.findNearbyStops(
                 latitude,
                 longitude,
                 radius
         );
 
-        // 수정된 부분 2: NearbyStopDto를 BusStopInfoResponse로 변환
         return nearbyStops.stream()
-                .map(BusStopInfoResponse::new) // NearbyStopDto -> new BusStopInfoResponse(dto) 호출
+                .map(BusStopInfoResponse::from)
                 .collect(Collectors.toList());
     }
 
+    public BusStopInfoResponse findBusStopByStopId(String stopId){
+        BusStop busStop = busStopRepository.findById(stopId)
+                .orElseThrow(() -> new BusStopNotFoundException("해당 ID의 버스 정류장을 찾을 수 없습니다 : " + stopId));
+        return BusStopInfoResponse.from(busStop);
+
+    }
     /*Deprecated
     //버스 정류장 정보 조회 메서드
     @Transactional(readOnly = true)
@@ -150,7 +158,7 @@ public class BusstopService {
                 .map(dbBus -> {
                     RealtimeArrivingBusDto resultDto = new RealtimeArrivingBusDto(dbBus);
                     ApiBusArrivalInfoDto apiInfo = apiBusMap.get(dbBus.getLineId());
-                    log.info("apiInfo : " + apiInfo.getLineId() + "remaining time(min) : " + apiInfo.getRemainingTime());
+                    //log.info("apiInfo : " + apiInfo.getLineId() + "remaining time(min) : " + apiInfo.getRemainingTime());
                     if(apiInfo != null){
                         resultDto.updateRealtimeInfo(apiInfo);
                     }

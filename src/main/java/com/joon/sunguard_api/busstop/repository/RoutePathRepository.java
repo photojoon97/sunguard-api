@@ -32,4 +32,3 @@ public interface RoutePathRepository extends JpaRepository<RoutePath, Integer> {
             "WHERE rp.busStop.bstopId = :bstopId")
     List<ArrivingBusDto> findArrivingBusesByStopId(@Param("bstopId") String bstopId);
 }
-

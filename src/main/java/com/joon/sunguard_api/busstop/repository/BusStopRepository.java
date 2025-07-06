@@ -5,9 +5,9 @@
 
 package com.joon.sunguard_api.busstop.repository;
 
+import com.joon.sunguard_api.busstop.dto.BusStopWithDistance;
 import com.joon.sunguard_api.busstop.dto.response.BusStopInfoResponse;
 import com.joon.sunguard_api.busstop.entity.BusStop;
-import com.joon.sunguard_api.busstop.dto.NearbyStopDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,15 +26,17 @@ public interface BusStopRepository extends JpaRepository<BusStop, String> {
     List<BusStopInfoResponse> findByStationName(@Param("stationName") String stationName);
 
 
+    //현재 위치 근처 정류장 조회
     @Query(value = "SELECT " +
             "b.bstop_id AS bstopId, " +
             "b.station_name AS stationName, " +
+            "b.bstop_no AS bstopNo, " +
             "(6371 * ACOS(COS(RADIANS(:latitude)) * COS(RADIANS(b.gps_y)) * COS(RADIANS(b.gps_x) - RADIANS(:longitude)) + SIN(RADIANS(:latitude)) * SIN(RADIANS(b.gps_y)))) AS distance " +
             "FROM bus_stops b " +
             "HAVING distance <= :radius " +
             "ORDER BY distance",
             nativeQuery = true)
-    List<NearbyStopDto> findNearbyStops(
+    List<BusStopWithDistance> findNearbyStops(
             @Param("latitude") Double latitude,
             @Param("longitude") Double longitude,
             @Param("radius") Double radius

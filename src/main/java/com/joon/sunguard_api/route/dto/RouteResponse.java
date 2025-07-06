@@ -15,4 +15,7 @@ public class RouteResponse {
 
     // 총 예상 거리 (km)
     private String totalDistance;
+
+    // 이동 방위
+    private String direction;
 }
