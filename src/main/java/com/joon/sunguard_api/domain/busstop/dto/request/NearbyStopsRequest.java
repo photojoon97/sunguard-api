@@ -10,19 +10,19 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class NearbyStopsRequestDto {
+public class NearbyStopsRequest {
 
     private String bstopnm; //추후 검색된 정류장 근처의 정류장 조회 기능을 위해
 
     @NotNull(message = "위도는 필수값 입니다. ")
     private String latitude;
 
-    @NotNull(message = "��도는 필수값 입니다. ")
+    @NotNull(message = "경도는 필수값 입니다. ")
     private String longitude;
 
     private double radius = 0.5; //설정 반경
 
-    public NearbyStopsRequestDto(String latitude, String longitude, Double radius) {
+    public NearbyStopsRequest(String latitude, String longitude, Double radius) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.radius = radius;

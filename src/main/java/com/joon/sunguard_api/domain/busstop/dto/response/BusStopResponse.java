@@ -18,7 +18,7 @@ public class BusStopResponse {
     private final Double distance;    // 현재 위치로부터의 거리 (단위: km)
 
     @Builder
-    public BusStopResponse(@NonNull String stationName, String bstopId, String bstopNo, Double distance) {
+    public BusStopResponse(String stationName, String bstopId, String bstopNo, Double distance) {
         this.stationName = stationName;
         this.bstopId = bstopId;
         this.bstopNo = bstopNo;

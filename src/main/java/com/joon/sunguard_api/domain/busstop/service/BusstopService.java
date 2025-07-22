@@ -2,29 +2,32 @@ package com.joon.sunguard_api.domain.busstop.service;
 
 import com.joon.sunguard_api.domain.busstop.dto.ApiBusArrivalInfoDto;
 import com.joon.sunguard_api.domain.busstop.dto.ArrivingBusDto;
-import com.joon.sunguard_api.domain.busstop.dto.BusStopWithDistance;
-import com.joon.sunguard_api.domain.busstop.dto.request.BusStopArrivalRequestDto;
-import com.joon.sunguard_api.domain.busstop.dto.request.NearbyStopsRequestDto;
+import com.joon.sunguard_api.domain.busstop.dto.BusStopWithDistanceDto;
+import com.joon.sunguard_api.domain.busstop.dto.request.BusStopArrivalRequest;
+import com.joon.sunguard_api.domain.busstop.dto.request.NearbyStopsRequest;
 import com.joon.sunguard_api.domain.busstop.dto.response.BusArrivalResponse;
 import com.joon.sunguard_api.domain.busstop.dto.response.BusStopResponse;
 import com.joon.sunguard_api.domain.busstop.entity.BusStop;
 import com.joon.sunguard_api.domain.busstop.repository.BusStopRepository;
 import com.joon.sunguard_api.domain.busstop.repository.RoutePathRepository;
+import com.joon.sunguard_api.domain.busstop.util.LocationUtils;
 import com.joon.sunguard_api.global.config.BusanBusApi;
 import com.joon.sunguard_api.global.exception.BusStopNotFoundException;
 import com.joon.sunguard_api.global.publicapi.OpenApiCallContext;
-import com.joon.sunguard_api.domain.route.dto.RouteResponse;
 import com.joon.sunguard_api.domain.route.service.PathfinderService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class BusstopService {
 
     private final BusanBusApi busanBusApi;
@@ -32,51 +35,63 @@ public class BusstopService {
     private final BusStopRepository busStopRepository;
     private final RoutePathRepository routePathRepository;
     private final PathfinderService pathfinderService;
-
-    public BusstopService(
-            BusanBusApi busanBusApi,
-            OpenApiCallContext openApiCallContext,
-            BusStopRepository busStopRepository,
-            RoutePathRepository routePathRepository,
-            PathfinderService pathfinderService
-    ) {
-        this.busanBusApi = busanBusApi;
-        this.openApiCallContext = openApiCallContext;
-        this.busStopRepository = busStopRepository;
-        this.routePathRepository = routePathRepository;
-        this.pathfinderService = pathfinderService;
-    }
+    private final LocationUtils locationUtils;
 
     //정류장 이름으로 버스 정류장 검색
     public List<BusStopResponse> findBusStopsByName(String stopName){
-        List<BusStopResponse> busStops = busStopRepository.findByStopName(stopName);
+        List<BusStop> busStops = busStopRepository.findByStopNameContaining(stopName);
+        //List<BusStopResponse> busStops = busStopRepository.findByStopName(stopName);
         if(busStops.isEmpty()){
-            throw new BusStopNotFoundException("해당 이름의 정류장을 찾을 ��� 없습니다 : " + stopName);
+            throw new BusStopNotFoundException("해당 이름의 정류장을 찾을 정류장을 없습니다 : " + stopName);
         }
-        return busStops;
+
+        List<BusStopResponse> result = busStops.stream()
+                .map(busStop -> BusStopResponse.builder()
+                        .stationName(busStop.getStopName())
+                        .bstopId(busStop.getBstopId())
+                        .bstopNo(busStop.getBstopNo())
+                        .build())
+                .toList();
+
+        return result;
     }
 
     //현재 위치를 기준으로 근처 정류장 검색
     @Transactional(readOnly = true)
-    public List<BusStopResponse> searchNearbyBusStops(NearbyStopsRequestDto request) {
+    public List<BusStopResponse> searchNearbyBusStops(NearbyStopsRequest request) {
         double latitude = Double.parseDouble(request.getLatitude());
         double longitude = Double.parseDouble(request.getLongitude());
         double radius = request.getRadius();
-        log.info("Searching for nearby bus stops with latitude: {}, longitude: {}, radius: {}", latitude, longitude, radius);
 
-        List<BusStopWithDistance> nearbyStops = busStopRepository.findNearbyStops(latitude, longitude, radius);
-        log.info("Found {} nearby stops in repository.", nearbyStops.size());
+        double latChange = radius / 111.0; // 위도 1도당 약 111km
+        double lonChange = radius / (111.0 * Math.cos(Math.toRadians(latitude)));
+        double minLat = latitude - latChange;
+        double maxLat = latitude + latChange;
+        double minLon = longitude - lonChange;
+        double maxLon = longitude + lonChange;
 
-        List<BusStopResponse> response = nearbyStops.stream()
-                .map(stop -> BusStopResponse.builder()
-                        .bstopId(stop.getBstopId())
-                        .stationName(stop.getStationName())
-                        .bstopNo(stop.getBstopNo())
-                        .distance(stop.getDistance())
+        List<BusStop> candidateStops = busStopRepository.findBusStopsInBoundingBox(minLat, maxLat, minLon, maxLon);
+
+        // 3. 서비스 계층에서 정밀한 거리 계산, 필터링, 정렬, DTO 매핑 수행
+        return candidateStops.stream()
+                // 3-1. 각 정류장까지의 정확한 거리를 계산 (Haversine 공식 등)
+                .map(stop -> {
+                    double distance = locationUtils.calculateDistance(latitude, longitude, stop.getGpsY(), stop.getGpsX());
+                    // 임시 객체나 Pair를 사용하여 정류장과 계산된 거리를 함께 전달
+                    return new BusStopWithDistanceDto(stop, distance);
+                })
+                // 3-2. 반경(radius) 내에 있는 정류장만 필터링 (2차 필터링)
+                .filter(stopWithDistance -> stopWithDistance.getDistance() <= radius)
+                // 3-3. 거리가 가까운 순으로 정렬
+                .sorted(Comparator.comparing(BusStopWithDistanceDto::getDistance))
+                // 3-4. 최종적으로 BusStopResponse DTO로 변환
+                .map(stopWithDistance -> BusStopResponse.builder()
+                        .bstopId(stopWithDistance.getBusStop().getBstopId())
+                        .stationName(stopWithDistance.getBusStop().getStopName())
+                        .bstopNo(stopWithDistance.getBusStop().getBstopNo())
+                        .distance(stopWithDistance.getDistance())
                         .build())
                 .collect(Collectors.toList());
-        log.info("Returning {} bus stops in response.", response.size());
-        return response;
     }
 
     public BusStopResponse findBusStopByStopId(String stopId){
@@ -98,7 +113,7 @@ public class BusstopService {
         List<ArrivingBusDto> dbBuses = routePathRepository.findArrivingBusesByStopId(bstopId);
 
         // 외부 API 호출을 위한 DTO
-        BusStopArrivalRequestDto requestDto = new BusStopArrivalRequestDto(bstopId);
+        BusStopArrivalRequest requestDto = new BusStopArrivalRequest(bstopId);
 
         // 외부 API 호출
         List<ApiBusArrivalInfoDto> apiBuses = openApiCallContext.excute(
@@ -132,16 +147,6 @@ public class BusstopService {
                             .remainingStops(remainingStops)
                             .build();
                 }).collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public RouteResponse findShortestPath(String startId, String endId) {
-        log.info("경로 탐색 서비스 호출: {} -> {}", startId, endId);
-        RouteResponse response = pathfinderService.findShortestPath(startId, endId);
-        if (response == null) {
-            log.warn("경로를 찾지 못했습니다: {} -> {}", startId, endId);
-        }
-        return response;
     }
 }
 
