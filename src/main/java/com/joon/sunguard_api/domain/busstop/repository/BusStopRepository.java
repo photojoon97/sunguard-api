@@ -5,8 +5,6 @@
 
 package com.joon.sunguard_api.domain.busstop.repository;
 
-import com.joon.sunguard_api.domain.busstop.dto.BusStopWithDistance;
-import com.joon.sunguard_api.domain.busstop.dto.response.BusStopResponse;
 import com.joon.sunguard_api.domain.busstop.entity.BusStop;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,26 +18,18 @@ public interface BusStopRepository extends JpaRepository<BusStop, String> {
 
 
     //정류장 이름으로 DB에서 정류장 정보 조회
-    @Query("SELECT new com.joon.sunguard_api.domain.busstop.dto.response.BusStopResponse(bs.stopName, bs.bstopId, bs.bstopNo, null) " +
-            "FROM BusStop bs " +
-            "WHERE bs.stopName LIKE %:stopName%")
-    List<BusStopResponse> findByStopName(@Param("stopName") String stopName);
+    List<BusStop> findByStopNameContaining(String stopName);
 
 
     //현재 위치 근처 정류장 조회
-    @Query(value = "SELECT " +
-            "b.bstop_id AS bstopId, " +
-            "b.station_name AS stationName, " +
-            "b.bstop_no AS bstopNo, " +
-            "(6371 * ACOS(COS(RADIANS(:latitude)) * COS(RADIANS(b.gps_y)) * COS(RADIANS(b.gps_x) - RADIANS(:longitude)) + SIN(RADIANS(:latitude)) * SIN(RADIANS(b.gps_y)))) AS distance " +
-            "FROM bus_stops b " +
-            "HAVING distance <= :radius " +
-            "ORDER BY distance",
-            nativeQuery = true)
-    List<BusStopWithDistance> findNearbyStops(
-            @Param("latitude") Double latitude,
-            @Param("longitude") Double longitude,
-            @Param("radius") Double radius
+    @Query("SELECT b FROM BusStop b " +
+            "WHERE b.gpsY BETWEEN :minLat AND :maxLat " +
+            "AND b.gpsX BETWEEN :minLon AND :maxLon")
+    List<BusStop> findBusStopsInBoundingBox(
+            @Param("minLat") double minLat,
+            @Param("maxLat") double maxLat,
+            @Param("minLon") double minLon,
+            @Param("maxLon") double maxLon
     );
 }
 
