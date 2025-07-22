@@ -1,6 +1,6 @@
 package com.joon.sunguard_api.domain.busstop.controller;
 
-import com.joon.sunguard_api.domain.busstop.dto.request.NearbyStopsRequestDto;
+import com.joon.sunguard_api.domain.busstop.dto.request.NearbyStopsRequest;
 import com.joon.sunguard_api.domain.busstop.dto.response.BusArrivalResponse;
 import com.joon.sunguard_api.domain.busstop.dto.response.BusStopResponse;
 import com.joon.sunguard_api.domain.busstop.service.BusstopService;
@@ -38,7 +38,7 @@ public class Controller {
             @RequestParam("latitude") String latitude,
             @RequestParam("longitude") String longitude,
             @RequestParam(value = "radius", defaultValue = "0.5") Double radius) {
-        NearbyStopsRequestDto request = new NearbyStopsRequestDto(latitude, longitude, radius);
+        NearbyStopsRequest request = new NearbyStopsRequest(latitude, longitude, radius);
         List<BusStopResponse> result = busstopService.searchNearbyBusStops(request);
         return ResponseEntity.ok(result);
     }
