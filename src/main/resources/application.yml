@@ -1,18 +1,10 @@
 spring:
-  profiles:
-    include: db
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${mysql.url}
-    username: ${mysql.username}
-    password: ${mysql.password}
+  jpa:
+    open-in-view: false
   config:
     import:
+      - classpath:application-db.yml
+      - classpath:application-security.yml
       - classpath:application-busan-bus-api.yml
       - classpath:application-solar-api.yml
-      -
-  jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+      - classpath:application-jwt.yml
