@@ -7,7 +7,7 @@ import com.joon.sunguard_api.domain.security.dto.OAuth2Response;
 import com.joon.sunguard_api.domain.security.dto.UserDTO;
 import com.joon.sunguard_api.domain.security.entity.UserEntity;
 import com.joon.sunguard_api.domain.security.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
