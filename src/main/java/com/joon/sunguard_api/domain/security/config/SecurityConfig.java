@@ -34,8 +34,12 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/**")
-                .csrf(auth -> auth.disable())
+                .securityMatcher("/api/**");
+
+        http
+                .csrf(auth -> auth.disable());
+
+        http
                 .sessionManagement(auth -> auth
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
