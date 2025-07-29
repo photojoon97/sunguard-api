@@ -24,54 +24,49 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-
-        OAuth2User oAuth2User = super.loadUser(userRequest);
+        //인증서버에서 받아온 Access Token을 userRequest에 담음
+        OAuth2User oAuth2User = super.loadUser(userRequest); //userRequest에로 리소스 서버에서 사용자 정보 객체 oAuth2User 가져옴
         log.info("oAuth2User : " + oAuth2User);
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
-        OAuth2Response oAuth2Response = null;
+        OAuth2Response oAuth2Response;
 
-        if(registrationId.equals("github")){
+        if (registrationId.equals("github")) {
             oAuth2Response = new GithubResponse(oAuth2User.getAttributes());
-        }
-        else{
-            return null;
+        } else {
+            log.error("Unsupported provider: {}", registrationId);
+            throw new OAuth2AuthenticationException("Unsupported provider: " + registrationId);
         }
 
         String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
-        UserEntity exsitData = userRepository.findByUsername(username);
 
-        if(exsitData == null){
-            //신규회원인 경우 DB에 추가
-            UserEntity userEntity = new UserEntity();
-            userEntity.setUsername(username);
-            userEntity.setEmail(oAuth2Response.getEmail());
-            userEntity.setName(oAuth2Response.getName());
-            userEntity.setRole("ROLE_USER");
+        // Optional로 받고, orElseGet을 사용하여 신규/기존 사용자 처리
+        UserEntity userEntity = userRepository.findByUsername(username)
+                .map(existingUser -> {
+                    // 기존 사용자인 경우: 정보 업데이트
+                    existingUser.setEmail(oAuth2Response.getEmail());
+                    existingUser.setName(oAuth2Response.getName());
+                    return existingUser;
+                })
+                .orElseGet(() -> {
+                    // 신규 사용자인 경우: 새로 생성
+                    UserEntity newUser = new UserEntity();
+                    newUser.setUsername(username);
+                    newUser.setEmail(oAuth2Response.getEmail());
+                    newUser.setName(oAuth2Response.getName());
+                    newUser.setRole("ROLE_USER");
+                    return newUser;
+                });
 
-            userRepository.save(userEntity);
+        userRepository.save(userEntity);
 
-            UserDTO userDto = new UserDTO();
-            userDto.setUsername(username);
-            userDto.setName(oAuth2Response.getName());
-            userDto.setRole("ROLE_USER");
+        UserDTO userDto = new UserDTO();
+        userDto.setUsername(userEntity.getUsername());
+        userDto.setName(userEntity.getName());
+        userDto.setRole(userEntity.getRole());
 
-            return new CustomOAuth2User(userDto);
-        }
-        else{
-            exsitData.setEmail(oAuth2Response.getEmail());
-            exsitData.setName(oAuth2Response.getName());
+        return new CustomOAuth2User(userDto);
 
-            userRepository.save(exsitData);
-
-            UserDTO userDto = new UserDTO();
-            userDto.setUsername(exsitData.getUsername());
-            userDto.setName(oAuth2Response.getName());
-            userDto.setRole(exsitData.getRole());
-
-            return new CustomOAuth2User(userDto);
-
-        }
     }
 }

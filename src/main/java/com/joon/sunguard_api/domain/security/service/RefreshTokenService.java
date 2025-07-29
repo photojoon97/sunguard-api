@@ -20,11 +20,11 @@ public class RefreshTokenService {
 
 
     public boolean validateRefreshToken(String token) {
-        try{
+        try {
 
             jwtUtil.isExpired(token);
 
-            if(!"refreshToken".equals(jwtUtil.getCategory(token))){
+            if (!"refreshToken".equals(jwtUtil.getCategory(token))) {
                 return false;
             }
 
@@ -33,23 +33,26 @@ public class RefreshTokenService {
             //TODO: 검증 로직 보완
 
             return dbRefreshToken != null && dbRefreshToken.getRefreshToken().equals(token);
-        } catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
 
     public void saveToken(String username, String token, long refreshTokenExpiration) {
 
-        UserEntity user = userRepository.findByUsername(username);
+        UserEntity user = userRepository.findByUsername(username).orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
-        if(user == null){
+        if (user == null) {
             throw new IllegalArgumentException(("User not found :" + username));
         }
 
         RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
+                .user(user) // 이제 user는 UserEntity 타입이므로 에러 없음
                 .refreshToken(token)
                 .expiredAt(LocalDateTime.now().plusNanos(refreshTokenExpiration * 1_000_000))
                 .build();
+
+        refreshTokenRepository.save(refreshToken);
+
     }
 }

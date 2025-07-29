@@ -26,7 +26,7 @@ public class SunguardJpaConfig {
     @Bean(name = "sunguardEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean sunguardEntityManagerFactory(
             EntityManagerFactoryBuilder builder,
-            @Qualifier("sunguardDataSource")DataSource dataSource) {
+            @Qualifier("sunguardDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
                 .packages("com.joon.sunguard_api.domain.busstop.entity")
