@@ -3,10 +3,15 @@ package com.joon.sunguard_api.domain.user.entity;
 import com.joon.sunguard_api.domain.busstop.entity.BusStop;
 import com.joon.sunguard_api.domain.security.entity.UserEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "favorite_stops",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "stop_id"}))
 @Getter
+@NoArgsConstructor
 public class FavoriteStops {
 
     @Id
@@ -17,15 +22,16 @@ public class FavoriteStops {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @Column(nullable = false)
+    @Column(name = "stop_id", nullable = false)
     private String stopId;
 
-    @Column(nullable = false)
+    @Column
     private String stopNo;
 
     @Column(nullable = false)
     private String stopName;
 
+    @Builder
     public FavoriteStops(UserEntity user, String stopId, String stopNo, String stopName){
         this.user = user;
         this.stopId = stopId;

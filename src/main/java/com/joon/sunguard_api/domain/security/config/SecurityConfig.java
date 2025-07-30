@@ -11,12 +11,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -31,60 +31,57 @@ public class SecurityConfig {
     private final JWTProvider jwtProvider;
 
     @Bean
-    @Order(1)
-    public SecurityFilterChain apiFilterChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher("/api/**");
-
-        http
-                .csrf(auth -> auth.disable());
-
-        http
-                .sessionManagement(auth -> auth
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http
-                .addFilterBefore(new JWTFilter(jwtUtil, jwtProvider, cookieMangement ), OAuth2LoginAuthenticationFilter.class)
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
-                        .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(HttpServletResponse.SC_FORBIDDEN))
-                );
-
-        return http.build();
-    }
-
-    @Bean
-    @Order(2)
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
+        // 1. CSRF, Form Login, HTTP Basic 비활성화
         http
-                .csrf(auth -> auth.disable());
-
-        http
-                .formLogin(auth -> auth.disable());
-
-        http
+                .csrf(auth -> auth.disable())
+                .formLogin(auth -> auth.disable())
                 .httpBasic(auth -> auth.disable());
 
+        // 2. 경로별 인가 규칙 설정
         http
                 .authorizeHttpRequests(auth -> auth
+                        // 공개 엔드포인트 접근 허용
                         .requestMatchers("/", "/login", "/login/oauth2/code/**", "/oauth2/**", "/logout").permitAll()
+                        // 나머지 모든 요청은 인증 필요
                         .anyRequest().authenticated());
 
+        // 3. OAuth2 로그인 설정
         http
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
                                 .userService(customOAuth2UserService))
                         .successHandler(customSuccessHandler));
 
+        // 4. API 인증을 위한 JWT 필터 추가
+        http
+                .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        // 5. 로그아웃 설정
         http
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
+                        .logoutUrl("/logout") // 기본 POST 요청으로 매핑됨
                         .addLogoutHandler(customLogoutHandler)
-                        .deleteCookies("access-token", "refresh-token")
-                        .logoutSuccessUrl("/"));
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            cookieMangement.deleteCookie(response, "access_token");
+                            cookieMangement.deleteCookie(response, "refresh_token");
+                            response.sendRedirect("/");
+                        })
+                        .invalidateHttpSession(true)
+                );
 
+        // 6. 세션 관리 정책 설정
+        // API 요청은 JWT 필터가 상태 없이 처리함
+        http
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
+    }
+
+    @Bean
+    public JWTFilter jwtFilter() {
+        return new JWTFilter(jwtUtil, jwtProvider, cookieMangement);
     }
 }

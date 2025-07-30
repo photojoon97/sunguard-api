@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
@@ -15,12 +17,16 @@ public class UserController {
 
     private final FavoriteStopsService favoriteStopsService;
 
-//    @GetMapping("/favorite/stops")
-//    public BusStopResponse getFavoriteStops(){
-//        BusStopResponse busStopResponse = new BusStopResponse();
-//
-//        return busStopResponse;
-//    }
+    @GetMapping("/favorite/stops")
+    public ResponseEntity<List<FavoriteStopDto>> getFavoriteStops(@AuthenticationPrincipal CustomOAuth2User user){
+
+        if (user == null) {
+            throw new IllegalStateException("인증된 사용자 정보가 없습니다.");
+        }
+
+        List<FavoriteStopDto> favoriteStopDto = favoriteStopsService.getFavoriteStops(user);
+        return ResponseEntity.ok(favoriteStopDto);
+    }
 
 
     @PostMapping("/favorite/stops/{stopId}")
@@ -29,6 +35,9 @@ public class UserController {
 
         return ResponseEntity.ok(favoriteStops);
     }
+
+    //@DeleteMapping("/favorite/stops/{stopId}")
+
 
     //@GetMapping("/favorite/route")
 

@@ -2,6 +2,7 @@ package com.joon.sunguard_api.domain.security.util;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,6 +17,14 @@ public class CookieMangement {
 
         return cookie;
     }
+
+    public void deleteCookie(HttpServletResponse response, String name) {
+        Cookie cookie = new Cookie(name, null); // value를 null로 설정
+        cookie.setMaxAge(0); // 만료 시간을 0으로 설정하여 즉시 삭제
+        cookie.setPath("/");
+        response.addCookie(cookie);
+    }
+
 
     public String extractTokenFromCookie(HttpServletRequest request, String cookieName) {
         Cookie[] cookies = request.getCookies();
