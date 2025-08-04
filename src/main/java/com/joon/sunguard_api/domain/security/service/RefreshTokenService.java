@@ -1,15 +1,19 @@
 package com.joon.sunguard_api.domain.security.service;
 
+import com.joon.sunguard_api.domain.security.dto.CustomOAuth2User;
 import com.joon.sunguard_api.domain.security.entity.RefreshToken;
 import com.joon.sunguard_api.domain.security.entity.UserEntity;
 import com.joon.sunguard_api.domain.security.jwt.JWTUtil;
 import com.joon.sunguard_api.domain.security.repository.RefreshTokenRepository;
 import com.joon.sunguard_api.domain.security.repository.UserRepository;
+import com.joon.sunguard_api.global.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RefreshTokenService {
@@ -55,4 +59,13 @@ public class RefreshTokenService {
         refreshTokenRepository.save(refreshToken);
 
     }
+
+    public void deleteExistRefreshToken(CustomOAuth2User user){
+        String userName = user.getUsername();
+        UserEntity userEntity = userRepository.findByUsername(userName).orElseThrow(() -> new UserNotFoundException("유저를 찾을 수 없음 : " + userName));
+
+        refreshTokenRepository.deleteAllByUserId(userEntity.getId());
+
+    }
+
 }

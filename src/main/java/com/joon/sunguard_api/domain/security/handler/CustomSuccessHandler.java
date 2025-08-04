@@ -38,6 +38,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = jwtUtil.createJwt("accessToken",username, role, accessTokenExpiration);
         String refreshToken = jwtUtil.createJwt("refreshToken", username, role,  refreshTokenExpiration);
 
+        refreshTokenService.deleteExistRefreshToken(customOAuth2User);
         refreshTokenService.saveToken(username, refreshToken, refreshTokenExpiration);
 
         // Add tokens to cookies

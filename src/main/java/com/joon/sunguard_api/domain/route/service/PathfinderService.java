@@ -32,18 +32,25 @@ public class PathfinderService {
     public RouteResponse findShortestPath(String startStopId, String endStopId) {
         log.info("findShortestPath 메서드 실행 (ID 기반): {} -> {}", startStopId, endStopId);
 
-        // 1. 전달받은 ID로 정류장 정보 및 이름을 조회합니다.
-        BusStop startStop = routeDataService.getStopInfo().get(startStopId);
-        BusStop endStop = routeDataService.getStopInfo().get(endStopId);
+        BusStop startStop = null;
+        BusStop endStop = null;
 
-        if (startStop == null || endStop == null) {
+        // 1. 전달받은 ID로 정류장 정보 및 이름을 조회합니다.
+        try{
+            startStop = routeDataService.getStopInfo().get(startStopId);
+            endStop = routeDataService.getStopInfo().get(endStopId);
+
+            //출발, 도착 정류장의 이름
+            String startStopName = startStop.getStopName();
+            String endStopName = endStop.getStopName();
+        }catch (IllegalArgumentException e){
             log.error("출발지 또는 목적지 ID에 해당하는 정류장 정보를 찾을 수 없습니다. startId: {}, endId: {}", startStopId, endStopId);
-            throw new IllegalArgumentException("유효하지 않은 출발지 또는 목적지 ID입니다.");
         }
 
         //출발, 도착 정류장의 이름
         String startStopName = startStop.getStopName();
         String endStopName = endStop.getStopName();
+
 
         // 2. 조회한 이름을 사용해 가능한 모든 출발/도착 정류장 ID 목록을 가져옵니다.
         List<String> allStartStopIds = routeDataService.getStopNameToIds().get(startStopName); //츌발역과 이름이 같은 모든 정류장의 ID
@@ -97,7 +104,7 @@ public class PathfinderService {
 
             // 4. [수정] 현재 정류장이 목적지 후보 중 하나인지 확인합니다.
             if (allEndStopIds.contains(currentStopId)) { // 도착 정류장ID들 중 현재 정류장ID와 일치하는 것이 있으면 탐색 종료
-                log.info("목적지 도착! 경로를 재구성합니다.");
+                log.info("목적지 도착 경로를 재구성합니다.");
                 //여기서 최장거리 방위각 도출
                 //RouteNode : "방위각" : 거리
                 Optional<Map.Entry<String, Double>> MaxDirection =

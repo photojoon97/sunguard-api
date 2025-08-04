@@ -62,7 +62,7 @@ public class FavoriteStopsService {
             throw new IllegalStateException("인증된 사용자 정보에 username이 없습니다.");
         }
 
-        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다: " + username));
+        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다 : " + username));
 
         List<FavoriteStops> favoriteStops = favoriteStopsRepository.findByUserId(userEntity.getId()).orElseThrow(() -> new FavoriteStopNotFoundException("즐겨찾기 된 정류장이 없습니다." + username));
         //TODO: DTO 변환 위임
@@ -76,5 +76,18 @@ public class FavoriteStopsService {
                 .collect(Collectors.toList());
 
         return result;
+    }
+
+    public void deleteFavoriteStops(CustomOAuth2User user, String stopId) {
+        String username = user.getUsername();
+
+        if(username == null || username.isBlank()){
+            throw new IllegalStateException("인증된 사용자 정보에 username이 없습니다.");
+        }
+
+        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow( () -> new UserNotFoundException("사용자를 찾을 수 없습니다 : " + username));
+
+        favoriteStopsRepository.deleteByUserIdAndStopId(userEntity.getId(), stopId);
+
     }
 }

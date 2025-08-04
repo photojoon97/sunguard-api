@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BusStopRepository extends JpaRepository<BusStop, String> {
@@ -19,6 +20,8 @@ public interface BusStopRepository extends JpaRepository<BusStop, String> {
 
     //정류장 이름으로 DB에서 정류장 정보 조회
     List<BusStop> findByStopNameContaining(String stopName);
+
+    Optional<BusStop> findByBstopId(String stopId);
 
 
     //현재 위치 근처 정류장 조회
