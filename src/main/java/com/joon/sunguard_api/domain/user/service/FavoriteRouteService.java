@@ -14,6 +14,7 @@ import com.joon.sunguard_api.global.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional("userdbTransactionManager")
 public class FavoriteRouteService {
 
     private final FavoriteRouteRepository favoriteRouteRepository;
@@ -74,5 +76,18 @@ public class FavoriteRouteService {
                         ).collect(Collectors.toList());
 
         return  favoriteRouteResponse;
+    }
+
+    public void deleteFavoriteRoute(CustomOAuth2User user, FavoriteRouteRequest request) {
+
+        String username = user.getUsername();
+        String startStopId = request.getStartStopId();
+        String endStopId = request.getEndStopId();
+
+        UserEntity userEntity = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다. : " + username));
+
+        long userId = userEntity.getId();
+
+        favoriteRouteRepository.deleteByUserIdAndStartStopIdAndEndStopId(userId, startStopId, endStopId);
     }
 }

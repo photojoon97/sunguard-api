@@ -22,13 +22,13 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional("userdbTransactionManager")
 public class FavoriteStopsService {
 
     private final BusStopRepository busStopRepository;
     private final UserRepository userRepository;
     private final FavoriteStopsRepository favoriteStopsRepository;
 
-    @Transactional
     public FavoriteStopDto registerFavoriteStops(CustomOAuth2User user, String stopId) throws DuplicateFavoriteException {
         BusStop stopEntity = busStopRepository.findById(stopId).orElseThrow(() -> new BusStopNotFoundException("해당 ID의 버스 정류장을 찾을 수 없습니다. : " + stopId));
 
@@ -67,16 +67,17 @@ public class FavoriteStopsService {
         List<FavoriteStops> favoriteStops = favoriteStopsRepository.findByUserId(userEntity.getId()).orElseThrow(() -> new FavoriteStopNotFoundException("즐겨찾기 된 정류장이 없습니다." + username));
         //TODO: DTO 변환 위임
 
-        List<FavoriteStopDto> result = favoriteStops.stream()
+        List<FavoriteStopDto> result ;
+
+        return result = favoriteStops.stream()
                 .map(entity -> FavoriteStopDto.builder()
                         .stopName(entity.getStopName())
                         .stopId(entity.getStopId())
                         .stopNo(entity.getStopNo())
                         .build())
                 .collect(Collectors.toList());
-
-        return result;
     }
+
 
     public void deleteFavoriteStops(CustomOAuth2User user, String stopId) {
         String username = user.getUsername();

@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Table(name = "favorite_routes",
+        uniqueConstraints = @UniqueConstraint(columnNames = "user_id"))
 @NoArgsConstructor
 public class FavoriteRoutes {
 
@@ -16,7 +18,7 @@ public class FavoriteRoutes {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
@@ -36,5 +38,4 @@ public class FavoriteRoutes {
         this.endStopId = endStop.getBstopId();
         this.endStopName = endStop.getStopName();
     }
-
 }
