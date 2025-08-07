@@ -9,31 +9,29 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Slf4j
-@Component("listDtoStrategy")
+@Component("singleResponseStrategy")
 @RequiredArgsConstructor
-public class ResponseListStrategy implements OpenApiCallStrategy {
+public class SingleResponseStrategy implements OpenApiCallStrategy {
 
     private final PublicApiFetcher publicApiFetcher;
 
     @Override
-    public <T,R> Object callApi(String key, String url, R request, TypeReference<WrapperResponse<T>> typeReference) {
-
+    public <T, R> Object callApi(String key, String url, R request, TypeReference<WrapperResponse<T>> typeReference) {
         try {
             WrapperResponse<T> result = publicApiFetcher.fetchXmlToWrapper(url, key, request, typeReference);
             List<T> itemList = result.getItemList();
 
             if (itemList != null && !itemList.isEmpty()) {
-                log.info("API call successful. Fetched {} items.", itemList.size());
-                itemList.forEach(item -> log.debug("Fetched item: {}", item.toString()));
+                T firstItem = itemList.get(0);
+                log.info("API call successful. Fetched single item: {}", firstItem.toString());
+                return firstItem;
             } else {
                 log.warn("API call returned no items.");
+                return null;
             }
-
-            return itemList;
-
         } catch (Exception e) {
-            log.error("Xml to Dto List conversion failed", e);
-            throw new RuntimeException("Xml to Dto List conversion failed : " + e.getMessage());
+            log.error("XML to DTO conversion failed", e);
+            throw new RuntimeException("XML to DTO conversion failed: " + e.getMessage());
         }
     }
 }

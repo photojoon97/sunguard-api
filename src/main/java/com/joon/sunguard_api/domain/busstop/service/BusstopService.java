@@ -1,5 +1,6 @@
 package com.joon.sunguard_api.domain.busstop.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.joon.sunguard_api.domain.busstop.dto.ApiBusArrivalInfoDto;
 import com.joon.sunguard_api.domain.busstop.dto.ArrivingBusDto;
 import com.joon.sunguard_api.domain.busstop.dto.BusStopWithDistanceDto;
@@ -14,7 +15,7 @@ import com.joon.sunguard_api.domain.busstop.util.LocationUtils;
 import com.joon.sunguard_api.global.config.BusanBusApi;
 import com.joon.sunguard_api.global.exception.BusStopNotFoundException;
 import com.joon.sunguard_api.global.publicapi.OpenApiCallContext;
-import com.joon.sunguard_api.domain.route.service.PathfinderService;
+import com.joon.sunguard_api.global.publicapi.WrapperResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,6 @@ public class BusstopService {
     private final OpenApiCallContext openApiCallContext;
     private final BusStopRepository busStopRepository;
     private final RoutePathRepository routePathRepository;
-    private final PathfinderService pathfinderService;
     private final LocationUtils locationUtils;
 
     //정류장 이름으로 버스 정류장 검색
@@ -116,13 +116,16 @@ public class BusstopService {
         BusStopArrivalRequest requestDto = new BusStopArrivalRequest(bstopId);
 
         // 외부 API 호출
-        List<ApiBusArrivalInfoDto> apiBuses = openApiCallContext.excute(
+        Object rawResult = openApiCallContext.excute(
                 "listDtoStrategy",
                 key,
                 url,
                 requestDto,
-                ApiBusArrivalInfoDto.class
+                new TypeReference<WrapperResponse<ApiBusArrivalInfoDto>>() {}
         );
+
+        List<ApiBusArrivalInfoDto> apiBuses = (rawResult instanceof List) ? (List<ApiBusArrivalInfoDto>) rawResult : List.of();
+
 
         // API 결과를 lineId를 키로 하는 Map으로 변환하여 검색 성능 향상
         Map<String, ApiBusArrivalInfoDto> apiBusMap = apiBuses.stream()
